@@ -53,6 +53,8 @@ class RadialBarSeries<T, D> extends CircularSeries<T, D> {
     this.useSeriesColor = false,
     this.trackBorderColor = Colors.transparent,
     this.maximumValue,
+    this.customStartAngle = -90, // 新增起始角度参数
+    this.customEndAngle = 270, // 新增结束角度参数
     super.dataLabelSettings,
     super.radius = '80%',
     super.innerRadius = '50%',
@@ -111,6 +113,44 @@ class RadialBarSeries<T, D> extends CircularSeries<T, D> {
   /// }
   /// ```
   final double? maximumValue;
+
+  /// Custom start angle for the radial bar series.
+  ///
+  /// Defaults to `-90` degrees (top of circle).
+  ///
+  /// ```dart
+  /// Widget build(BuildContext context) {
+  ///    return Container(
+  ///        child: SfCircularChart(
+  ///            series: <RadialBarSeries<ChartData, String>>[
+  ///                RadialBarSeries<ChartData, String>(
+  ///                  customStartAngle: 0,
+  ///                ),
+  ///            ],
+  ///        )
+  ///    );
+  /// }
+  /// ```
+  final double customStartAngle;
+
+  /// Custom end angle for the radial bar series.
+  ///
+  /// Defaults to `270` degrees (full circle from -90).
+  ///
+  /// ```dart
+  /// Widget build(BuildContext context) {
+  ///    return Container(
+  ///        child: SfCircularChart(
+  ///            series: <RadialBarSeries<ChartData, String>>[
+  ///                RadialBarSeries<ChartData, String>(
+  ///                  customEndAngle: 90,
+  ///                ),
+  ///            ],
+  ///        )
+  ///    );
+  /// }
+  /// ```
+  final double customEndAngle;
 
   /// Border color of the track.
   ///
@@ -211,7 +251,9 @@ class RadialBarSeries<T, D> extends CircularSeries<T, D> {
       ..trackBorderColor = trackBorderColor
       ..trackBorderWidth = trackBorderWidth
       ..trackOpacity = trackOpacity
-      ..useSeriesColor = useSeriesColor;
+      ..useSeriesColor = useSeriesColor
+      ..seriesCustomStartAngle = customStartAngle
+      ..seriesCustomEndAngle = customEndAngle;
     return renderer;
   }
 
@@ -227,7 +269,9 @@ class RadialBarSeries<T, D> extends CircularSeries<T, D> {
       ..trackBorderColor = trackBorderColor
       ..trackBorderWidth = trackBorderWidth
       ..trackOpacity = trackOpacity
-      ..useSeriesColor = useSeriesColor;
+      ..useSeriesColor = useSeriesColor
+      ..seriesCustomStartAngle = customStartAngle
+      ..seriesCustomEndAngle = customEndAngle;
   }
 }
 
@@ -290,14 +334,39 @@ class RadialBarSeriesRenderer<T, D> extends CircularSeriesRenderer<T, D> {
     }
   }
 
+  // 新增的开始和结束角度属性
+  double get seriesCustomStartAngle => _seriesCustomStartAngle;
+  double _seriesCustomStartAngle = -90.0; // 默认值
+  set seriesCustomStartAngle(double value) {
+    if (_seriesCustomStartAngle != value) {
+      _seriesCustomStartAngle = value;
+      markNeedsLayout();
+    }
+  }
+
+  double get seriesCustomEndAngle => _seriesCustomEndAngle;
+  double _seriesCustomEndAngle = 270.0; // 默认值
+  set seriesCustomEndAngle(double value) {
+    if (_seriesCustomEndAngle != value) {
+      _seriesCustomEndAngle = value;
+      markNeedsLayout();
+    }
+  }
+
   @override
   void setData(int index, ChartSegment segment) {
     super.setData(index, segment);
 
     final num yValue = segment.isVisible ? circularYValues[index] : 0;
+
+    // 根据新的起始和结束角度计算总角度范围
+    final double totalAngleRange =
+        seriesCustomEndAngle - seriesCustomStartAngle;
+
+    // 计算比例
     double degree = yValue / (maximumValue ?? (sumOfY != 0 ? sumOfY : 1));
-    degree = degree * fullAngle;
-    final double pointEndAngle = pointStartAngle + degree;
+    degree = degree * totalAngleRange;
+    final double pointEndAngle = seriesCustomStartAngle + degree;
     final double innerRadius =
         currentInnerRadius =
             segment.isVisible
@@ -316,7 +385,7 @@ class RadialBarSeriesRenderer<T, D> extends CircularSeriesRenderer<T, D> {
     segment as RadialBarSegment<T, D>
       ..series = this
       .._degree = degree
-      .._startAngle = pointStartAngle
+      .._startAngle = seriesCustomStartAngle
       ..endAngle = pointEndAngle
       .._center = center
       ..innerRadius = innerRadius
@@ -368,12 +437,16 @@ class RadialBarSeriesRenderer<T, D> extends CircularSeriesRenderer<T, D> {
     final num sumOfY = circularYValues.reduce(
       (num value, num element) => value + element.abs(),
     );
-    const double pointStartAngle = -90;
+
+    // 使用自定义起始角度
+    final double pointStartAngle = seriesCustomStartAngle;
     final List<CircularLegendItem> legendItems = <CircularLegendItem>[];
     final int segmentsCount = segments.length;
     for (int i = 0; i < dataCount; i++) {
+      // 使用自定义的角度范围
+      double totalAngleRange = seriesCustomEndAngle - seriesCustomStartAngle;
       double degree = circularYValues[i] / (maximumValue ?? sumOfY);
-      degree = (degree > 1 ? 1 : degree) * fullAngle;
+      degree = (degree > 1 ? 1 : degree) * totalAngleRange;
       final double pointEndAngle = pointStartAngle + degree;
 
       final CircularLegendItem legendItem = CircularLegendItem(
@@ -686,14 +759,14 @@ class RadialBarSegment<T, D> extends ChartSegment {
       }
     }
 
-    trackPath = calculateArcPath(
+    // 使用辅助函数计算带圆角的弧形路径，确保轨道使用完整的自定义角度范围
+    trackPath = calculateRoundedCornerArcPath(
+      series.cornerStyle,
       innerRadius,
       outerRadius,
       _center,
-      0,
-      fullAngle,
-      fullAngle,
-      isAnimate: true,
+      series.seriesCustomStartAngle,
+      series.seriesCustomEndAngle,
     );
 
     if (_outerRadius > 0 && degree > 0) {
@@ -735,13 +808,16 @@ class RadialBarSegment<T, D> extends ChartSegment {
           false,
         );
       } else {
+        // 修复：确保进度条路径与轨道路径在相同的角度范围内对齐
+        // 使用从自定义起始角度开始的实际度数来计算进度条路径
+        final double actualEndAngle = series.seriesCustomStartAngle + degree;
         yValuePath = calculateRoundedCornerArcPath(
           cornerStyle,
           innerRadius,
           outerRadius,
           _center,
-          startAngle,
-          endAngle,
+          series.seriesCustomStartAngle, // 确保进度条从与轨道相同的起始角度开始
+          actualEndAngle, // 结束角度是起始角度加上实际度数
         );
       }
 
