@@ -444,7 +444,7 @@ class RadialBarSeriesRenderer<T, D> extends CircularSeriesRenderer<T, D> {
     final int segmentsCount = segments.length;
     for (int i = 0; i < dataCount; i++) {
       // 使用自定义的角度范围
-      double totalAngleRange = seriesCustomEndAngle - seriesCustomStartAngle;
+      final double totalAngleRange = seriesCustomEndAngle - seriesCustomStartAngle;
       double degree = circularYValues[i] / (maximumValue ?? sumOfY);
       degree = (degree > 1 ? 1 : degree) * totalAngleRange;
       final double pointEndAngle = pointStartAngle + degree;
@@ -760,19 +760,27 @@ class RadialBarSegment<T, D> extends ChartSegment {
     }
 
     // 使用辅助函数计算带圆角的弧形路径，确保轨道使用完整的自定义角度范围
+    // 像素对齐处理：确保坐标和半径为 0.5 的奇数倍，减少锯齿
+    final double alignedInnerRadius = (innerRadius * 2).roundToDouble() / 2;
+    final double alignedOuterRadius = (outerRadius * 2).roundToDouble() / 2;
+    final Offset alignedCenter = Offset(
+      (_center.dx * 2).roundToDouble() / 2 + 0.5,
+      (_center.dy * 2).roundToDouble() / 2 + 0.5,
+    );
+
     trackPath = calculateRoundedCornerArcPath(
       series.cornerStyle,
-      innerRadius,
-      outerRadius,
-      _center,
+      alignedInnerRadius,
+      alignedOuterRadius,
+      alignedCenter,
       series.seriesCustomStartAngle,
       series.seriesCustomEndAngle,
     );
 
     if (_outerRadius > 0 && degree > 0) {
       final num angleDeviation = findAngleDeviation(
-        innerRadius,
-        outerRadius,
+        alignedInnerRadius,
+        alignedOuterRadius,
         360,
       );
       final CornerStyle cornerStyle = series.cornerStyle;
@@ -813,9 +821,9 @@ class RadialBarSegment<T, D> extends ChartSegment {
         final double actualEndAngle = series.seriesCustomStartAngle + degree;
         yValuePath = calculateRoundedCornerArcPath(
           cornerStyle,
-          innerRadius,
-          outerRadius,
-          _center,
+          alignedInnerRadius,
+          alignedOuterRadius,
+          alignedCenter,
           series.seriesCustomStartAngle, // 确保进度条从与轨道相同的起始角度开始
           actualEndAngle, // 结束角度是起始角度加上实际度数
         );
