@@ -1,5 +1,15 @@
 ## Unreleased
 
+No changes.
+
+## [32.1.22] - 01/06/2026
+
+**Bugs**
+
+* The column drag view remains visible when columns are reordered quickly while column resizing is enabled.
+
+## [31.2.16] - 12/02/2025
+
 **Bugs**
 
 * The `Clear Filter` label is now correctly localized for the Spanish locale.
