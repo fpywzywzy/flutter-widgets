@@ -1,6 +1,20 @@
 ## Unreleased
 
-* No changes.
+**Features**
+
+* #FR29362 - Added explicit `height` and `width` support to [ResourceViewSettings](https://pub.dev/documentation/syncfusion_flutter_calendar/latest/calendar/SfCalendar/resourceViewSettings.html). When provided, `height` adjusts each resource item's height and `width` adjusts the resource panel width. These explicit values take precedence over `size`.
+
+## [32.1.24] - 01/20/2026
+
+**General**
+
+* Upgraded the `timezone` package to the latest version 0.11.0.
+
+## [32.1.22] - 01/06/2026
+
+**Bugs**
+
+* #GH1498 - The child widget in [loadMoreWidgetBuilder](https://pub.dev/documentation/syncfusion_flutter_calendar/latest/calendar/SfCalendar/loadMoreWidgetBuilder.html) was repeatedly invoked when [minDate](https://pub.dev/documentation/syncfusion_flutter_calendar/latest/calendar/SfCalendar/minDate.html) was set to current month-end date. Now, it runs once initially, and then load-more will be triggered only when required during scrolling. 
 
 ## [31.2.15] - 11/25/2025
 
