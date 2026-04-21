@@ -1,5 +1,41 @@
 ## Unreleased
 
+**Bugs**
+
+- Resolved a type-cast issue when accessing PDF bookmarks with a null destination
+
+## [32.1.24] - 01/20/2025
+
+- No changes.
+
+## [32.1.23] - 01/13/2025
+
+- No changes.
+
+## [32.1.22] - 01/06/2025
+
+- No changes.
+
+## [32.1.21] - 12/30/2025
+
+**Bugs**
+
+- Resolved an issue where the checkmark in a checkbox did not render in a specific PDF document.
+
+## [32.1.20] - 12/23/2025
+
+- No changes.
+
+## [32.1.19] - 12/16/2025
+
+- No changes.
+
+## [31.2.18] - 12/09/2025
+
+- No changes.
+
+## [31.2.16] - 12/02/2025
+
 - No changes.
 
 ## [31.2.15] - 11/25/2025

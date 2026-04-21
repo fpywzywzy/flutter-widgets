@@ -198,6 +198,12 @@ int findIndex(num target, List<num> values, {int start = 0, int? end}) {
   }
 
   end ??= values.length - 1;
+  if (values[start] == target) {
+    return start;
+  }
+  if (values[end] == target) {
+    return end;
+  }
   int mid = -1;
   while (start <= end!) {
     mid = start + ((end - start) ~/ 2);
